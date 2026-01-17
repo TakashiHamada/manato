@@ -407,8 +407,385 @@ class BreakoutGame {
     }
 }
 
+// 射的ゲーム
+class ShootingGame {
+    constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        if (!this.canvas) return;
+
+        this.ctx = this.canvas.getContext('2d');
+        this.width = this.canvas.width;
+        this.height = this.canvas.height;
+
+        // ゲーム状態
+        this.isRunning = false;
+        this.score = 0;
+        this.bullets = 10;
+        this.totalTargets = 5;
+        this.targetsRemaining = 5;
+
+        // 的のリスト
+        this.targets = [];
+
+        // 弾のリスト
+        this.activeBullets = [];
+
+        this.initTargets();
+        this.setupControls();
+        this.setupEventListeners();
+        this.draw();
+    }
+
+    initTargets() {
+        this.targets = [];
+        const targetSize = 50;
+        const minDistance = 100;
+
+        // 的を5個ランダムに配置（まばらに）
+        for (let i = 0; i < this.totalTargets; i++) {
+            let validPosition = false;
+            let x, y;
+            let attempts = 0;
+
+            while (!validPosition && attempts < 100) {
+                // 上半分のエリアにランダムに配置
+                x = Math.random() * (this.width - targetSize * 2) + targetSize;
+                y = Math.random() * (this.height / 2 - targetSize * 2) + targetSize;
+
+                // 他の的との距離をチェック
+                validPosition = true;
+                for (let j = 0; j < this.targets.length; j++) {
+                    const dx = x - this.targets[j].x;
+                    const dy = y - this.targets[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < minDistance) {
+                        validPosition = false;
+                        break;
+                    }
+                }
+
+                attempts++;
+            }
+
+            // 的を追加
+            this.targets.push({
+                x: x,
+                y: y,
+                width: targetSize,
+                height: targetSize,
+                isHit: false,
+                fallAngle: 0,
+                fallSpeed: 0,
+                isFalling: false
+            });
+        }
+    }
+
+    setupControls() {
+        const startButton = document.getElementById('shootingStartButton');
+        const resetButton = document.getElementById('shootingResetButton');
+
+        if (startButton) {
+            startButton.addEventListener('click', () => this.start());
+        }
+        if (resetButton) {
+            resetButton.addEventListener('click', () => this.reset());
+        }
+    }
+
+    setupEventListeners() {
+        // クリックイベント
+        this.canvas.addEventListener('click', (e) => {
+            if (this.isRunning) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                this.shoot(x, y);
+            }
+        });
+
+        // タッチイベント（モバイル対応）
+        this.canvas.addEventListener('touchstart', (e) => {
+            if (this.isRunning) {
+                e.preventDefault();
+                const rect = this.canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                this.shoot(x, y);
+            }
+        });
+    }
+
+    shoot(targetX, targetY) {
+        if (this.bullets <= 0) {
+            return;
+        }
+
+        this.bullets--;
+        this.updateBullets();
+
+        // 画面下部から弾を発射
+        const startX = this.width / 2;
+        const startY = this.height - 20;
+
+        // 目標地点への方向を計算
+        const dx = targetX - startX;
+        const dy = targetY - startY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // 正規化して速度を設定
+        const speed = 15;
+        const vx = (dx / distance) * speed;
+        const vy = (dy / distance) * speed;
+
+        this.activeBullets.push({
+            x: startX,
+            y: startY,
+            vx: vx,
+            vy: vy,
+            radius: 5
+        });
+    }
+
+    updateBullets() {
+        const bulletsElement = document.getElementById('shootingBullets');
+        if (bulletsElement) {
+            bulletsElement.textContent = this.bullets;
+        }
+    }
+
+    updateScore() {
+        const scoreElement = document.getElementById('shootingScore');
+        if (scoreElement) {
+            scoreElement.textContent = this.score;
+        }
+    }
+
+    updateTargets() {
+        const targetsElement = document.getElementById('shootingTargets');
+        if (targetsElement) {
+            targetsElement.textContent = this.targetsRemaining;
+        }
+    }
+
+    drawGun() {
+        // 画面下部に銃を表示
+        const gunX = this.width / 2;
+        const gunY = this.height - 10;
+
+        this.ctx.fillStyle = '#333';
+        this.ctx.fillRect(gunX - 15, gunY - 30, 30, 30);
+        this.ctx.fillStyle = '#666';
+        this.ctx.fillRect(gunX - 5, gunY - 50, 10, 25);
+    }
+
+    drawTargets() {
+        for (let i = 0; i < this.targets.length; i++) {
+            const target = this.targets[i];
+
+            if (target.isHit) {
+                // 倒れるアニメーション
+                if (target.isFalling) {
+                    target.fallAngle += target.fallSpeed;
+                    target.fallSpeed += 0.5; // 重力的な加速
+
+                    if (target.fallAngle >= 90) {
+                        target.fallAngle = 90;
+                        target.isFalling = false;
+                    }
+                }
+
+                this.ctx.save();
+                this.ctx.translate(target.x + target.width / 2, target.y + target.height);
+                this.ctx.rotate((target.fallAngle * Math.PI) / 180);
+                this.ctx.translate(-(target.x + target.width / 2), -(target.y + target.height));
+
+                // 的を描画（景品風）
+                this.ctx.fillStyle = '#FFD700';
+                this.ctx.fillRect(target.x, target.y, target.width, target.height);
+                this.ctx.fillStyle = '#FF6B6B';
+                this.ctx.fillRect(target.x + 10, target.y + 10, target.width - 20, target.height - 20);
+                this.ctx.fillStyle = '#333';
+                this.ctx.font = '20px Arial';
+                this.ctx.fillText('景品', target.x + 5, target.y + 32);
+
+                this.ctx.restore();
+            } else {
+                // 通常の的
+                this.ctx.fillStyle = '#FFD700';
+                this.ctx.fillRect(target.x, target.y, target.width, target.height);
+                this.ctx.fillStyle = '#FF6B6B';
+                this.ctx.fillRect(target.x + 10, target.y + 10, target.width - 20, target.height - 20);
+                this.ctx.fillStyle = '#333';
+                this.ctx.font = '20px Arial';
+                this.ctx.fillText('景品', target.x + 5, target.y + 32);
+            }
+        }
+    }
+
+    drawBullets() {
+        for (let i = 0; i < this.activeBullets.length; i++) {
+            const bullet = this.activeBullets[i];
+            this.ctx.beginPath();
+            this.ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+            this.ctx.fillStyle = '#FFF';
+            this.ctx.fill();
+            this.ctx.strokeStyle = '#FFD700';
+            this.ctx.lineWidth = 2;
+            this.ctx.stroke();
+            this.ctx.closePath();
+        }
+    }
+
+    updateBulletPositions() {
+        for (let i = this.activeBullets.length - 1; i >= 0; i--) {
+            const bullet = this.activeBullets[i];
+            bullet.x += bullet.vx;
+            bullet.y += bullet.vy;
+
+            // 画面外に出た弾を削除
+            if (bullet.x < 0 || bullet.x > this.width || bullet.y < 0 || bullet.y > this.height) {
+                this.activeBullets.splice(i, 1);
+            }
+        }
+    }
+
+    checkCollisions() {
+        for (let i = this.activeBullets.length - 1; i >= 0; i--) {
+            const bullet = this.activeBullets[i];
+
+            for (let j = 0; j < this.targets.length; j++) {
+                const target = this.targets[j];
+
+                if (!target.isHit) {
+                    // 当たり判定
+                    if (bullet.x > target.x &&
+                        bullet.x < target.x + target.width &&
+                        bullet.y > target.y &&
+                        bullet.y < target.y + target.height) {
+
+                        // 的に当たった
+                        target.isHit = true;
+                        target.isFalling = true;
+                        target.fallSpeed = 2;
+                        this.score += 100;
+                        this.targetsRemaining--;
+                        this.updateScore();
+                        this.updateTargets();
+
+                        // 弾を削除
+                        this.activeBullets.splice(i, 1);
+
+                        // すべての的を倒したかチェック
+                        if (this.targetsRemaining === 0) {
+                            this.gameWin();
+                        }
+
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    draw() {
+        this.ctx.clearRect(0, 0, this.width, this.height);
+
+        // 背景
+        const gradient = this.ctx.createLinearGradient(0, 0, 0, this.height);
+        gradient.addColorStop(0, '#87CEEB');
+        gradient.addColorStop(1, '#FFE4B5');
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(0, 0, this.width, this.height);
+
+        this.drawTargets();
+        this.drawBullets();
+        this.drawGun();
+
+        if (this.isRunning) {
+            this.updateBulletPositions();
+            this.checkCollisions();
+
+            // 弾切れチェック
+            if (this.bullets <= 0 && this.activeBullets.length === 0 && this.targetsRemaining > 0) {
+                this.gameOver();
+                return;
+            }
+
+            requestAnimationFrame(() => this.draw());
+        }
+    }
+
+    start() {
+        if (!this.isRunning) {
+            this.isRunning = true;
+            this.draw();
+            ManatoApp.log('Shooting game started');
+        }
+    }
+
+    reset() {
+        this.isRunning = false;
+        this.score = 0;
+        this.bullets = 10;
+        this.targetsRemaining = this.totalTargets;
+        this.activeBullets = [];
+        this.initTargets();
+        this.updateScore();
+        this.updateBullets();
+        this.updateTargets();
+        this.draw();
+        ManatoApp.log('Shooting game reset');
+    }
+
+    gameOver() {
+        this.isRunning = false;
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+        this.ctx.fillRect(0, 0, this.width, this.height);
+        this.ctx.font = '48px Arial';
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('GAME OVER', this.width / 2, this.height / 2);
+        this.ctx.font = '24px Arial';
+        this.ctx.fillText(`スコア: ${this.score}`, this.width / 2, this.height / 2 + 40);
+        ManatoApp.log('Shooting game over');
+    }
+
+    gameWin() {
+        this.isRunning = false;
+        setTimeout(() => {
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+            this.ctx.fillRect(0, 0, this.width, this.height);
+            this.ctx.font = '48px Arial';
+            this.ctx.fillStyle = '#FFD700';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText('PERFECT!', this.width / 2, this.height / 2);
+            this.ctx.font = '24px Arial';
+            this.ctx.fillStyle = '#FFFFFF';
+            this.ctx.fillText(`スコア: ${this.score}`, this.width / 2, this.height / 2 + 40);
+            this.ctx.fillText(`残弾: ${this.bullets}`, this.width / 2, this.height / 2 + 70);
+            ManatoApp.log('Shooting game won');
+        }, 500);
+    }
+}
+
 // ゲームの初期化
 document.addEventListener('DOMContentLoaded', function() {
+    // 射的ゲームの初期化
+    const shootingCanvas = document.getElementById('shootingCanvas');
+    if (shootingCanvas && window.innerWidth < 768) {
+        const containerWidth = Math.min(window.innerWidth - 40, 480);
+        shootingCanvas.width = containerWidth;
+        shootingCanvas.height = Math.floor(containerWidth * 1.25); // 4:5の比率を維持
+        ManatoApp.log(`Shooting canvas resized for mobile: ${shootingCanvas.width}x${shootingCanvas.height}`);
+    }
+
+    const shootingGame = new ShootingGame('shootingCanvas');
+    window.shootingGame = shootingGame;
+    ManatoApp.log('Shooting game initialized');
+
     // モバイル対応: キャンバスサイズの最適化
     const canvas = document.getElementById('breakoutCanvas');
     if (canvas && window.innerWidth < 768) {

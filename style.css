@@ -137,7 +137,7 @@ footer {
     gap: 20px;
 }
 
-#breakoutCanvas {
+#breakoutCanvas, #shootingCanvas {
     border: 3px solid #667eea;
     border-radius: 8px;
     background: #000;
@@ -241,7 +241,7 @@ footer {
         padding: 20px;
     }
 
-    #breakoutCanvas {
+    #breakoutCanvas, #shootingCanvas {
         width: 100%;
         max-width: 100%;
         height: auto;

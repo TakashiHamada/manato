@@ -30,6 +30,34 @@
             </section>
 
             <section class="game-section">
+                <h2>射的ゲーム</h2>
+                <div class="game-container">
+                    <canvas id="shootingCanvas" width="480" height="600"></canvas>
+                    <div class="game-controls">
+                        <button id="shootingStartButton" class="primary-button">スタート</button>
+                        <button id="shootingResetButton" class="secondary-button">リセット</button>
+                    </div>
+                    <div class="game-info">
+                        <div class="info-item">
+                            <span class="info-label">スコア:</span>
+                            <span id="shootingScore" class="info-value">0</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">残弾:</span>
+                            <span id="shootingBullets" class="info-value">10</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">的:</span>
+                            <span id="shootingTargets" class="info-value">5</span>
+                        </div>
+                    </div>
+                    <p class="game-instructions">
+                        タップまたはクリックで弾を発射！すべての的を倒そう！
+                    </p>
+                </div>
+            </section>
+
+            <section class="game-section">
                 <h2>ブロック崩しゲーム</h2>
                 <div class="game-container">
                     <canvas id="breakoutCanvas" width="480" height="400"></canvas>
