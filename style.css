@@ -143,6 +143,9 @@ footer {
     background: #000;
     display: block;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .game-controls {
@@ -240,8 +243,9 @@ footer {
 
     #breakoutCanvas {
         width: 100%;
-        max-width: 480px;
+        max-width: 100%;
         height: auto;
+        border-width: 2px;
     }
 
     .game-info {
@@ -255,7 +259,12 @@ footer {
     }
 
     .primary-button, .secondary-button {
-        padding: 10px 25px;
-        font-size: 0.95em;
+        padding: 12px 30px;
+        font-size: 1em;
+        min-height: 44px;
+    }
+
+    .game-instructions {
+        font-size: 0.85em;
     }
 }

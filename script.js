@@ -164,6 +164,25 @@ class BreakoutGame {
             const rect = this.canvas.getBoundingClientRect();
             this.mouseX = e.clientX - rect.left;
         });
+
+        // タッチ操作のサポート（モバイル対応）
+        this.canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const rect = this.canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            this.mouseX = touch.clientX - rect.left;
+        });
+
+        this.canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const rect = this.canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            this.mouseX = touch.clientX - rect.left;
+        });
+
+        this.canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+        });
     }
 
     drawBall() {
@@ -390,6 +409,15 @@ class BreakoutGame {
 
 // ゲームの初期化
 document.addEventListener('DOMContentLoaded', function() {
+    // モバイル対応: キャンバスサイズの最適化
+    const canvas = document.getElementById('breakoutCanvas');
+    if (canvas && window.innerWidth < 768) {
+        const containerWidth = Math.min(window.innerWidth - 40, 480);
+        canvas.width = containerWidth;
+        canvas.height = Math.floor(containerWidth * 0.833); // 6:5の比率を維持
+        ManatoApp.log(`Canvas resized for mobile: ${canvas.width}x${canvas.height}`);
+    }
+
     const game = new BreakoutGame('breakoutCanvas');
     window.breakoutGame = game;
     ManatoApp.log('Breakout game initialized');
