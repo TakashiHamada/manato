@@ -63,6 +63,8 @@ class ShootingGame {
         this.bulletSpeed = 8;
         this.canShoot = true;
         this.shootCooldown = 300; // ミリ秒
+        this.maxBullets = 10; // 最大弾数
+        this.remainingBullets = 10; // 残り弾数
 
         // ターゲット
         this.targets = [];
@@ -146,7 +148,7 @@ class ShootingGame {
     }
 
     shoot() {
-        if (!this.isRunning || this.isPaused || this.isGameOver || !this.canShoot) return;
+        if (!this.isRunning || this.isPaused || this.isGameOver || !this.canShoot || this.remainingBullets <= 0) return;
 
         this.bullets.push({
             x: this.gunX + this.gunWidth / 2 - this.bulletWidth / 2,
@@ -154,6 +156,9 @@ class ShootingGame {
             width: this.bulletWidth,
             height: this.bulletHeight
         });
+
+        this.remainingBullets--;
+        this.updateBulletsCount();
 
         this.canShoot = false;
         setTimeout(() => {
@@ -304,6 +309,13 @@ class ShootingGame {
         }
     }
 
+    updateBulletsCount() {
+        const bulletsElement = document.getElementById('bullets');
+        if (bulletsElement) {
+            bulletsElement.textContent = this.remainingBullets;
+        }
+    }
+
     draw(currentTime) {
         this.ctx.clearRect(0, 0, this.width, this.height);
 
@@ -357,6 +369,7 @@ class ShootingGame {
         this.isGameOver = false;
         this.score = 0;
         this.missedTargets = 0;
+        this.remainingBullets = this.maxBullets; // 弾数を10に戻す
         this.gunX = (this.width - this.gunWidth) / 2;
         this.bullets = [];
         this.targets = [];
@@ -365,6 +378,7 @@ class ShootingGame {
 
         this.updateScore();
         this.updateMissed();
+        this.updateBulletsCount();
 
         this.ctx.clearRect(0, 0, this.width, this.height);
         const gradient = this.ctx.createLinearGradient(0, 0, 0, this.height);
