@@ -411,11 +411,16 @@ class BreakoutGame {
 class ShootingGame {
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId);
-        if (!this.canvas) return;
+        if (!this.canvas) {
+            console.error('Shooting game canvas not found:', canvasId);
+            return;
+        }
 
         this.ctx = this.canvas.getContext('2d');
         this.width = this.canvas.width;
         this.height = this.canvas.height;
+
+        console.log('Shooting game canvas size:', this.width, 'x', this.height);
 
         // ゲーム状態
         this.isRunning = false;
@@ -433,13 +438,15 @@ class ShootingGame {
         this.initTargets();
         this.setupControls();
         this.setupEventListeners();
+        console.log('Initial targets:', this.targets.length);
         this.draw();
     }
 
     initTargets() {
         this.targets = [];
-        const targetSize = 50;
-        const minDistance = 100;
+        // 画面サイズに応じて的のサイズと距離を調整
+        const targetSize = Math.min(50, this.width / 10);
+        const minDistance = Math.min(100, this.width / 5);
 
         // 的を5個ランダムに配置（まばらに）
         for (let i = 0; i < this.totalTargets; i++) {
@@ -449,8 +456,18 @@ class ShootingGame {
 
             while (!validPosition && attempts < 100) {
                 // 上半分のエリアにランダムに配置
-                x = Math.random() * (this.width - targetSize * 2) + targetSize;
-                y = Math.random() * (this.height / 2 - targetSize * 2) + targetSize;
+                const margin = targetSize;
+                const maxX = this.width - margin;
+                const maxY = this.height / 2 - margin;
+
+                if (maxX <= margin || maxY <= margin) {
+                    // 画面が小さすぎる場合、中央に配置
+                    x = this.width / 2;
+                    y = this.height / 4;
+                } else {
+                    x = Math.random() * (maxX - margin) + margin;
+                    y = Math.random() * (maxY - margin) + margin;
+                }
 
                 // 他の的との距離をチェック
                 validPosition = true;
@@ -463,6 +480,11 @@ class ShootingGame {
                         validPosition = false;
                         break;
                     }
+                }
+
+                // 100回試行しても配置できない場合は、距離制限を無視
+                if (attempts >= 99) {
+                    validPosition = true;
                 }
 
                 attempts++;
@@ -584,6 +606,8 @@ class ShootingGame {
     drawTargets() {
         for (let i = 0; i < this.targets.length; i++) {
             const target = this.targets[i];
+            const fontSize = Math.floor(target.width * 0.4);
+            const padding = target.width * 0.2;
 
             if (target.isHit) {
                 // 倒れるアニメーション
@@ -606,10 +630,10 @@ class ShootingGame {
                 this.ctx.fillStyle = '#FFD700';
                 this.ctx.fillRect(target.x, target.y, target.width, target.height);
                 this.ctx.fillStyle = '#FF6B6B';
-                this.ctx.fillRect(target.x + 10, target.y + 10, target.width - 20, target.height - 20);
+                this.ctx.fillRect(target.x + padding, target.y + padding, target.width - padding * 2, target.height - padding * 2);
                 this.ctx.fillStyle = '#333';
-                this.ctx.font = '20px Arial';
-                this.ctx.fillText('景品', target.x + 5, target.y + 32);
+                this.ctx.font = `${fontSize}px Arial`;
+                this.ctx.fillText('景品', target.x + padding / 2, target.y + target.height / 2 + fontSize / 3);
 
                 this.ctx.restore();
             } else {
@@ -617,10 +641,10 @@ class ShootingGame {
                 this.ctx.fillStyle = '#FFD700';
                 this.ctx.fillRect(target.x, target.y, target.width, target.height);
                 this.ctx.fillStyle = '#FF6B6B';
-                this.ctx.fillRect(target.x + 10, target.y + 10, target.width - 20, target.height - 20);
+                this.ctx.fillRect(target.x + padding, target.y + padding, target.width - padding * 2, target.height - padding * 2);
                 this.ctx.fillStyle = '#333';
-                this.ctx.font = '20px Arial';
-                this.ctx.fillText('景品', target.x + 5, target.y + 32);
+                this.ctx.font = `${fontSize}px Arial`;
+                this.ctx.fillText('景品', target.x + padding / 2, target.y + target.height / 2 + fontSize / 3);
             }
         }
     }
@@ -775,16 +799,18 @@ class ShootingGame {
 document.addEventListener('DOMContentLoaded', function() {
     // 射的ゲームの初期化
     const shootingCanvas = document.getElementById('shootingCanvas');
-    if (shootingCanvas && window.innerWidth < 768) {
-        const containerWidth = Math.min(window.innerWidth - 40, 480);
-        shootingCanvas.width = containerWidth;
-        shootingCanvas.height = Math.floor(containerWidth * 1.25); // 4:5の比率を維持
-        ManatoApp.log(`Shooting canvas resized for mobile: ${shootingCanvas.width}x${shootingCanvas.height}`);
-    }
+    if (shootingCanvas) {
+        if (window.innerWidth < 768) {
+            const containerWidth = Math.min(window.innerWidth - 40, 480);
+            shootingCanvas.width = containerWidth;
+            shootingCanvas.height = Math.floor(containerWidth * 1.25); // 4:5の比率を維持
+            ManatoApp.log(`Shooting canvas resized for mobile: ${shootingCanvas.width}x${shootingCanvas.height}`);
+        }
 
-    const shootingGame = new ShootingGame('shootingCanvas');
-    window.shootingGame = shootingGame;
-    ManatoApp.log('Shooting game initialized');
+        const shootingGame = new ShootingGame('shootingCanvas');
+        window.shootingGame = shootingGame;
+        ManatoApp.log('Shooting game initialized');
+    }
 
     // モバイル対応: キャンバスサイズの最適化
     const canvas = document.getElementById('breakoutCanvas');
