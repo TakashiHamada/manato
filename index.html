@@ -28,6 +28,35 @@
                     <p id="demoOutput" class="output"></p>
                 </div>
             </section>
+
+            <section class="game-section">
+                <h2>ブロック崩しゲーム</h2>
+                <div class="game-container">
+                    <canvas id="breakoutCanvas" width="480" height="400"></canvas>
+                    <div class="game-controls">
+                        <button id="startButton" class="primary-button">スタート</button>
+                        <button id="pauseButton" class="secondary-button">一時停止</button>
+                        <button id="resetButton" class="secondary-button">リセット</button>
+                    </div>
+                    <div class="game-info">
+                        <div class="info-item">
+                            <span class="info-label">スコア:</span>
+                            <span id="score" class="info-value">0</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">ライフ:</span>
+                            <span id="lives" class="info-value">3</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">レベル:</span>
+                            <span id="level" class="info-value">1</span>
+                        </div>
+                    </div>
+                    <p class="game-instructions">
+                        ← → キーまたはマウスでパドルを操作してボールを打ち返そう！
+                    </p>
+                </div>
+            </section>
         </main>
 
         <footer>
