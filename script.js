@@ -148,7 +148,7 @@ class ShootingGame {
     }
 
     shoot() {
-        if (!this.isRunning || this.isPaused || this.isGameOver || !this.canShoot || this.remainingBullets <= 0) return;
+        if (!this.isRunning || this.isPaused || this.isGameOver || !this.canShoot) return;
 
         this.bullets.push({
             x: this.gunX + this.gunWidth / 2 - this.bulletWidth / 2,
@@ -156,9 +156,6 @@ class ShootingGame {
             width: this.bulletWidth,
             height: this.bulletHeight
         });
-
-        this.remainingBullets--;
-        this.updateBulletsCount();
 
         this.canShoot = false;
         setTimeout(() => {
@@ -316,15 +313,22 @@ class ShootingGame {
         }
     }
 
+    drawStripedBackground() {
+        // 射的屋風の赤白ストライプ背景
+        const stripeWidth = 40;
+        const numStripes = Math.ceil(this.width / stripeWidth);
+
+        for (let i = 0; i < numStripes; i++) {
+            this.ctx.fillStyle = i % 2 === 0 ? '#FF0000' : '#FFFFFF';
+            this.ctx.fillRect(i * stripeWidth, 0, stripeWidth, this.height);
+        }
+    }
+
     draw(currentTime) {
         this.ctx.clearRect(0, 0, this.width, this.height);
 
-        // 背景グラデーション
-        const gradient = this.ctx.createLinearGradient(0, 0, 0, this.height);
-        gradient.addColorStop(0, '#1a1a2e');
-        gradient.addColorStop(1, '#16213e');
-        this.ctx.fillStyle = gradient;
-        this.ctx.fillRect(0, 0, this.width, this.height);
+        // 射的屋風の背景
+        this.drawStripedBackground();
 
         this.drawTargets();
         this.drawBullets();
@@ -369,7 +373,6 @@ class ShootingGame {
         this.isGameOver = false;
         this.score = 0;
         this.missedTargets = 0;
-        this.remainingBullets = this.maxBullets; // 弾数を10に戻す
         this.gunX = (this.width - this.gunWidth) / 2;
         this.bullets = [];
         this.targets = [];
@@ -378,14 +381,9 @@ class ShootingGame {
 
         this.updateScore();
         this.updateMissed();
-        this.updateBulletsCount();
 
         this.ctx.clearRect(0, 0, this.width, this.height);
-        const gradient = this.ctx.createLinearGradient(0, 0, 0, this.height);
-        gradient.addColorStop(0, '#1a1a2e');
-        gradient.addColorStop(1, '#16213e');
-        this.ctx.fillStyle = gradient;
-        this.ctx.fillRect(0, 0, this.width, this.height);
+        this.drawStripedBackground();
         this.drawGun();
 
         ManatoApp.log('Shooting game reset');
