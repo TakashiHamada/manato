@@ -15,24 +15,10 @@
         </header>
 
         <main>
-            <section class="welcome-section">
-                <h2>ようこそ</h2>
-                <p>このページは、Manatoアプリケーションの土台となるページです。</p>
-                <p>ここから様々な機能を追加できます。</p>
-            </section>
-
-            <section class="demo-section">
-                <h2>デモ機能</h2>
-                <div class="demo-controls">
-                    <button id="demoButton" class="primary-button">クリックしてみてください</button>
-                    <p id="demoOutput" class="output"></p>
-                </div>
-            </section>
-
             <section class="game-section">
-                <h2>ブロック崩しゲーム</h2>
+                <h2>射的ゲーム</h2>
                 <div class="game-container">
-                    <canvas id="breakoutCanvas" width="480" height="400"></canvas>
+                    <canvas id="shootingCanvas" width="480" height="400"></canvas>
                     <div class="game-controls">
                         <button id="startButton" class="primary-button">スタート</button>
                         <button id="pauseButton" class="secondary-button">一時停止</button>
@@ -44,16 +30,12 @@
                             <span id="score" class="info-value">0</span>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">ライフ:</span>
-                            <span id="lives" class="info-value">3</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">レベル:</span>
-                            <span id="level" class="info-value">1</span>
+                            <span class="info-label">ミス:</span>
+                            <span id="missed" class="info-value">0/10</span>
                         </div>
                     </div>
                     <p class="game-instructions">
-                        ← → キー、マウス、またはタッチでパドルを操作してボールを打ち返そう！
+                        ← → キー、マウス、またはタッチで移動。スペースキーまたはクリック/タップで射撃！
                     </p>
                 </div>
             </section>
